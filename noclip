@@ -1,0 +1,37 @@
+local player = game.Players.LocalPlayer
+	local UserInputService = game:GetService("UserInputService")
+	local RunService = game:GetService("RunService")
+
+	local noclipEnabled = false
+	local connection
+
+	local function setCollision(character, canCollide)
+		for _, part in ipairs(character:GetDescendants()) do
+			if part:IsA("BasePart") then
+				part.CanCollide = canCollide
+			end
+		end
+	end
+
+	UserInputService.InputBegan:Connect(function(input, gameProcessed)
+		if gameProcessed then return end
+
+		if input.KeyCode == Enum.KeyCode.N then
+			noclipEnabled = not noclipEnabled
+
+			local character = player.Character
+			if not character then return end
+
+			if noclipEnabled then
+				connection = RunService.Stepped:Connect(function()
+					setCollision(character, false)
+				end)
+			else
+				if connection then
+					connection:Disconnect()
+					connection = nil
+				end
+				setCollision(character, true)
+			end
+		end
+	end)
