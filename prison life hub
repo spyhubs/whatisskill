@@ -1,0 +1,239 @@
+--// Prison Life Client Admin Hub
+--// GUI + Commands + ESP + Weapon Helpers
+--// Prefix: ;
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+local StarterGui = game:GetService("StarterGui")
+local player = Players.LocalPlayer
+local camera = workspace.CurrentCamera
+local prefix = ";"
+
+--========================
+-- STATE
+--========================
+local Toggles = {
+    ESP = false,
+    AimAssist = false,
+    Recoil = false,
+    Fly = false,
+    Noclip = false,
+    FakeAdmin = false,
+}
+
+local Settings = {
+    WalkSpeed = 16,
+    AimRadius = 120,
+    AimSmooth = 0.15,
+}
+
+--========================
+-- CHARACTER
+--========================
+local function char()
+    return player.Character or player.CharacterAdded:Wait()
+end
+
+--========================
+-- FAKE ADMIN TAG
+--========================
+local oldChat = player.Chatted
+player.Chatted:Connect(function(msg)
+    if Toggles.FakeAdmin then
+        StarterGui:SetCore("ChatMakeSystemMessage", {
+            Text = "[ADMIN] "..player.Name..": "..msg,
+            Color = Color3.fromRGB(255, 80, 80),
+            Font = Enum.Font.SourceSansBold,
+            FontSize = Enum.FontSize.Size18
+        })
+    end
+end)
+
+--========================
+-- ESP
+--========================
+local ESPObjects = {}
+
+local function clearESP()
+    for _,v in pairs(ESPObjects) do
+        v:Destroy()
+    end
+    ESPObjects = {}
+end
+
+RunService.RenderStepped:Connect(function()
+    if not Toggles.ESP then
+        clearESP()
+        return
+    end
+
+    for _,plr in pairs(Players:GetPlayers()) do
+        if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+            if not ESPObjects[plr] then
+                local bill = Instance.new("BillboardGui")
+                bill.Size = UDim2.new(0,200,0,50)
+                bill.AlwaysOnTop = true
+                bill.Adornee = plr.Character.HumanoidRootPart
+                bill.Parent = camera
+
+                local txt = Instance.new("TextLabel", bill)
+                txt.Size = UDim2.new(1,0,1,0)
+                txt.BackgroundTransparency = 1
+                txt.TextColor3 = Color3.new(1,0,0)
+                txt.Font = Enum.Font.GothamBold
+                txt.TextScaled = true
+
+                ESPObjects[plr] = bill
+            end
+
+            local dist = (plr.Character.HumanoidRootPart.Position - camera.CFrame.Position).Magnitude
+            ESPObjects[plr].TextLabel.Text = plr.Name.." ["..math.floor(dist).."]"
+        end
+    end
+end)
+
+--========================
+-- AIM ASSIST
+--========================
+local function getClosestTarget()
+    local closest, dist = nil, Settings.AimRadius
+    for _,plr in pairs(Players:GetPlayers()) do
+        if plr ~= player and plr.Character and plr.Character:FindFirstChild("Head") then
+            local pos, onscreen = camera:WorldToViewportPoint(plr.Character.Head.Position)
+            if onscreen then
+                local mag = (Vector2.new(pos.X,pos.Y) - UIS:GetMouseLocation()).Magnitude
+                if mag < dist then
+                    dist = mag
+                    closest = plr.Character.Head
+                end
+            end
+        end
+    end
+    return closest
+end
+
+RunService.RenderStepped:Connect(function()
+    if Toggles.AimAssist then
+        local target = getClosestTarget()
+        if target then
+            camera.CFrame = camera.CFrame:Lerp(
+                CFrame.new(camera.CFrame.Position, target.Position),
+                Settings.AimSmooth
+            )
+        end
+    end
+end)
+
+--========================
+-- RECOIL CONTROL
+--========================
+camera:GetPropertyChangedSignal("CFrame"):Connect(function()
+    if Toggles.Recoil then
+        camera.CFrame = camera.CFrame * CFrame.Angles(0,0,0)
+    end
+end)
+
+--========================
+-- FLY
+--========================
+local bv, bg
+local function fly()
+    if Toggles.Fly then return end
+    Toggles.Fly = true
+
+    local root = char():WaitForChild("HumanoidRootPart")
+    bv = Instance.new("BodyVelocity", root)
+    bg = Instance.new("BodyGyro", root)
+    bv.MaxForce = Vector3.new(1e9,1e9,1e9)
+    bg.MaxTorque = Vector3.new(1e9,1e9,1e9)
+
+    RunService.RenderStepped:Connect(function()
+        if not Toggles.Fly then return end
+        local cam = camera
+        local vel =
+            (UIS:IsKeyDown(Enum.KeyCode.W) and cam.CFrame.LookVector or Vector3.zero) +
+            (UIS:IsKeyDown(Enum.KeyCode.S) and -cam.CFrame.LookVector or Vector3.zero) +
+            (UIS:IsKeyDown(Enum.KeyCode.A) and -cam.CFrame.RightVector or Vector3.zero) +
+            (UIS:IsKeyDown(Enum.KeyCode.D) and cam.CFrame.RightVector or Vector3.zero)
+        bv.Velocity = vel * 60
+        bg.CFrame = cam.CFrame
+    end)
+end
+
+local function unfly()
+    Toggles.Fly = false
+    if bv then bv:Destroy() end
+    if bg then bg:Destroy() end
+end
+
+--========================
+-- NOCLIP
+--========================
+RunService.Stepped:Connect(function()
+    if Toggles.Noclip then
+        for _,p in pairs(char():GetDescendants()) do
+            if p:IsA("BasePart") then
+                p.CanCollide = false
+            end
+        end
+    end
+end)
+
+--========================
+-- COMMANDS
+--========================
+player.Chatted:Connect(function(msg)
+    if msg:sub(1,#prefix) ~= prefix then return end
+    local args = msg:sub(#prefix+1):lower():split(" ")
+    local cmd = args[1]
+
+    if cmd == "esp" then Toggles.ESP = not Toggles.ESP end
+    if cmd == "aim" then Toggles.AimAssist = not Toggles.AimAssist end
+    if cmd == "recoil" then Toggles.Recoil = not Toggles.Recoil end
+    if cmd == "fly" then fly() end
+    if cmd == "unfly" then unfly() end
+    if cmd == "noclip" then Toggles.Noclip = true end
+    if cmd == "clip" then Toggles.Noclip = false end
+    if cmd == "speed" then
+        char():FindFirstChildOfClass("Humanoid").WalkSpeed = tonumber(args[2]) or 16
+    end
+    if cmd == "admin" then Toggles.FakeAdmin = true end
+    if cmd == "unadmin" then Toggles.FakeAdmin = false end
+end)
+
+--========================
+-- GUI (Simple Toggle Panel)
+--========================
+local gui = Instance.new("ScreenGui", player.PlayerGui)
+gui.ResetOnSpawn = false
+
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.fromScale(0.25,0.4)
+frame.Position = UDim2.fromScale(0.05,0.3)
+frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+frame.Active = true
+frame.Draggable = true
+Instance.new("UICorner", frame)
+
+local function button(text,y,callback)
+    local b = Instance.new("TextButton", frame)
+    b.Size = UDim2.new(0.9,0,0.12,0)
+    b.Position = UDim2.new(0.05,0,y,0)
+    b.Text = text
+    b.Font = Enum.Font.GothamBold
+    b.TextScaled = true
+    b.TextColor3 = Color3.new(1,1,1)
+    b.BackgroundColor3 = Color3.fromRGB(40,40,40)
+    Instance.new("UICorner", b)
+    b.MouseButton1Click:Connect(callback)
+end
+
+button("ESP",0.05,function() Toggles.ESP = not Toggles.ESP end)
+button("Aim Assist",0.18,function() Toggles.AimAssist = not Toggles.AimAssist end)
+button("Recoil Control",0.31,function() Toggles.Recoil = not Toggles.Recoil end)
+button("Fly",0.44,function() if Toggles.Fly then unfly() else fly() end end)
+button("Noclip",0.57,function() Toggles.Noclip = not Toggles.Noclip end)
+button("Fake Admin",0.70,function() Toggles.FakeAdmin = not Toggles.FakeAdmin end)
+
+print("Prison Life Client Admin Hub Loaded")
