@@ -1,0 +1,62 @@
+;god - Enable Godmode
+;ungod - Disable Godmode
+;antitase - Enable Anti-Tase
+;antiarrest - Enable Anti-Arrest
+;fly - Enable Fly
+;unfly - Disable Fly
+;noclip - Enable Noclip
+;clip - Disable Noclip
+;speed <num> - Set WalkSpeed
+;speedreset - Reset WalkSpeed
+;walkspeed+ - Increase WalkSpeed by 5
+;walkspeed- - Decrease WalkSpeed by 5
+;jump <num> - Set JumpPower
+;jumppowerreset - Reset JumpPower
+;jumppower+ - Increase JumpPower by 10
+;jumppower- - Decrease JumpPower by 10
+;flyspeed <num> - Set Fly Speed
+;killme - Reset your character
+;rejoin - Rejoin the game
+;tptoplayer <name> - Teleport to a player
+;jumpto <player> - Teleport to a player
+;bring <player> - Teleport a player to you
+;tpcoords <x> <y> <z> - Teleport to coordinates
+;esp - Toggle ESP
+;loopesp - Toggle looping ESP highlight
+;aim - Toggle Aim Assist
+;recoil - Toggle Recoil Control
+;admin - Enable Fake Admin Tag
+;unadmin - Disable Fake Admin Tag
+;invisible - Make your character invisible locally
+;visible - Revert invisibility
+;say <text> - Send fake admin chat message
+;time <num> - Change local TimeOfDay
+;gravity <num> - Change local gravity
+;spin - Spin your character
+;resetfly - Reset Fly speed to default
+;resetall - Reset WalkSpeed, JumpPower, Fly, Noclip, ESP
+;dance - Plays Dance Animation
+;wave - Plays Wave Animation
+;boostfps - Toggle FPS Boost
+;skybox <name> - Change skybox (available: galaxy, night, red)
+;clearsky - Clear custom skybox
+;spec <player> - Spectate a player
+;unspec - Stop spectating
+;follow <player> - Follow a player
+;unfollow - Stop following
+;superman - Launch your character into the air
+;hat <assetID> - Add a hat by asset ID
+;music <assetID> - Play music by asset ID
+;stopmusic - Stop playing music
+;sparkles - Enable sparkles on character
+;nosparkles - Disable sparkles on character
+;headless - Remove your character's head
+;headrestore - Restore your character's head
+;grabtools - Grab all tools in the workspace
+;wedit color PartName 255 0 0     -- Changes PartName to red
+;wedit size PartName 5 5 5      -- Changes PartName size to 5,5,5
+;wedit transparency PartName 0.5  -- Changes PartName transparency to 0.5
+;wedit delete PartName         -- Deletes the Part
+;btools - Give yourself building tools
+;nobtools - Remove building tools
+;bring - Teleport a player to you
